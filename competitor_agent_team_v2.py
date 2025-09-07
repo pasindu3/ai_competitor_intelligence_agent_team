@@ -21,25 +21,11 @@ st.set_page_config(page_title="AI Competitor Intelligence Agent Team", layout="w
 # Sidebar for API keys
 st.sidebar.title("API Keys")
 
-# Helper to read from Streamlit Secrets with .env fallback (for local dev)
-def get_secret(name: str, default: str = "") -> str:
-    return str(st.secrets.get(name, os.getenv(name, default)))
-
-# Read API keys from Streamlit Secrets first, then environment
-openai_env_key = get_secret("OPENAI_API_KEY", "")
-firecrawl_env_key = get_secret("FIRECRAWL_API_KEY", "")
-perplexity_env_key = get_secret("PERPLEXITY_API_KEY", "")
-exa_env_key = get_secret("EXA_API_KEY", "")
-
-# Optionally mirror into os.environ for libraries that auto-read env vars
-for _k, _v in {
-    "OPENAI_API_KEY": openai_env_key,
-    "FIRECRAWL_API_KEY": firecrawl_env_key,
-    "PERPLEXITY_API_KEY": perplexity_env_key,
-    "EXA_API_KEY": exa_env_key,
-}.items():
-    if _v:
-        os.environ[_k] = _v
+# Read API keys from environment
+openai_env_key = os.getenv("OPENAI_API_KEY", "")
+firecrawl_env_key = os.getenv("FIRECRAWL_API_KEY", "")
+perplexity_env_key = os.getenv("PERPLEXITY_API_KEY", "")
+exa_env_key = os.getenv("EXA_API_KEY", "")
 
 # Add search engine selection before API keys
 search_engine = st.sidebar.selectbox(
@@ -49,7 +35,7 @@ search_engine = st.sidebar.selectbox(
 )
 
 # Display required keys status and store into session state
-st.sidebar.subheader("Required API keys (from secrets/env)")
+st.sidebar.subheader("Required API keys (from environment)")
 if search_engine == "Perplexity AI - Sonar Pro":
     required_keys = {
         "OPENAI_API_KEY": openai_env_key,
@@ -82,8 +68,8 @@ if exa_env_key and search_engine == "Exa AI":
     st.session_state.exa_api_key = exa_env_key
 
 if missing_any:
-    st.sidebar.warning("Some required API keys are missing.")
-    st.sidebar.info("On Streamlit Cloud, set them in App → Settings → Secrets. For local runs, use a .env file or .streamlit/secrets.toml.")
+    st.sidebar.warning("Some required API keys are missing from the environment (.env).")
+    st.sidebar.info("Set them in your .env file and restart the app.")
 
 # Main UI
 st.title("🧲 AI Competitor Intelligence Agent Team")
