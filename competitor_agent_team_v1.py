@@ -1,6 +1,7 @@
 import streamlit as st
 from exa_py import Exa
 from agno.agent import Agent
+from agno.tools.firecrawl import FirecrawlTools
 from agno.models.openai import OpenAIChat
 from agno.tools.duckduckgo import DuckDuckGoTools
 import pandas as pd
@@ -95,28 +96,16 @@ if "openai_api_key" in st.session_state and "firecrawl_api_key" in st.session_st
         if search_engine == "Exa AI":
             exa = Exa(api_key=st.session_state.exa_api_key)
 
-        # Initialize FirecrawlApp and expose simple callable tools
-        firecrawl_app = FirecrawlApp(api_key=st.session_state.firecrawl_api_key)
-
-        def firecrawl_crawl(url: str, limit: int = 5) -> str:
-            """Crawl a website using Firecrawl and return JSON string."""
-            try:
-                result = firecrawl_app.crawl_url(url, limit=limit, poll_interval=30)
-                return json.dumps(result.model_dump())
-            except Exception as e:
-                return f"Error crawling {url}: {e}"
-
-        def firecrawl_scrape(url: str) -> str:
-            """Scrape a single page using Firecrawl and return JSON string."""
-            try:
-                result = firecrawl_app.scrape_url(url)
-                return json.dumps(result.model_dump())
-            except Exception as e:
-                return f"Error scraping {url}: {e}"
+        firecrawl_tools = FirecrawlTools(
+            api_key=st.session_state.firecrawl_api_key,
+            scrape=False,
+            crawl=True,
+            limit=5
+        )
 
         firecrawl_agent = Agent(
             model=OpenAIChat(id="gpt-4o", api_key=st.session_state.openai_api_key),
-            tools=[firecrawl_crawl, firecrawl_scrape, DuckDuckGoTools()],
+            tools=[firecrawl_tools, DuckDuckGoTools()],
             show_tool_calls=True,
             markdown=True
         )

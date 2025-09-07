@@ -1,4 +1,6 @@
 .env
 tmp/
 *.pdf
+venv/
+venv2/
 
